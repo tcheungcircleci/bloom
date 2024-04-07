@@ -87,9 +87,17 @@ jobs:
           command: yarn dev:public-wait
           working_directory: sites/public
       - run:
+          name: Install coverage reporter
+          command: yarn add --dev cypress-circleci-reporter
+          working_directory: sites/public/
+      - run:
           name: Run Cypress
-          command: npx cypress run
+          command: |
+            TEST_FILES=$(find ./cypress -name "*.cy.js" -or -name "*.spec.js" -or -name "*.cy.ts" -or -name "*.spec.ts")
+            echo "$TEST_FILES" | circleci tests run --command="xargs npx cypress run --reporter ../../node_modules/cypress-circleci-reporter --spec" --verbose
           working_directory: sites/public
+      - store_test_results:
+          path: sites/public/test_results
       - store_artifacts:
           path: sites/public/cypress/videos
       - store_artifacts:
@@ -188,7 +196,7 @@ jobs:
             APP_SECRET: "CI-LONG-SECRET-KEY"
             # DB URL for migration and seeds:
             DATABASE_URL: "postgres://bloom-ci@localhost:5432/bloom_prisma"
-    
+
 
 workflows:
   build:
